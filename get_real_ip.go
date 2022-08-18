@@ -13,7 +13,6 @@ const (
 	xForwardedFor = "X-Forwarded-For"
 )
 
-// Proxy 配置文件中的数组结构
 type Proxy struct {
 	ProxyHeadername  string `yaml:"proxyHeadername"`
 	ProxyHeadervalue string `yaml:"proxyHeadervalue"`
@@ -49,23 +48,20 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}, nil
 }
 
-// 真正干事情了
 func (g *GetRealIP) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	// fmt.Println("☃️当前配置：", g.proxy, "remoteaddr", req.RemoteAddr)
+
 	var realIP string
 	for _, proxy := range g.proxy {
 		if req.Header.Get(proxy.ProxyHeadername) == "*" || (req.Header.Get(proxy.ProxyHeadername) == proxy.ProxyHeadervalue) {
 			fmt.Printf("🐸 Current Proxy：%s\n", proxy.ProxyHeadervalue)
-			// CDN来源确定
+
 			nIP := req.Header.Get(proxy.RealIP)
 			if proxy.RealIP == "RemoteAddr" {
 				nIP, _, _ = net.SplitHostPort(req.RemoteAddr)
 			}
 			forwardedIPs := strings.Split(nIP, ",")
-			// 从头部获取到IP并分割（主要担心xff有多个IP）
-			// 只有单个IP也只会返回单个IP slice
 			fmt.Printf("👀 IPs: '%d' detail:'%v'\n", len(forwardedIPs), forwardedIPs)
-			// 如果有多个，得到第一个 IP
+
 			for i := 0; i <= len(forwardedIPs)-1; i++ {
 				trimmedIP := strings.TrimSpace(forwardedIPs[i])
 				excluded := g.excludedIP(trimmedIP)
@@ -76,10 +72,10 @@ func (g *GetRealIP) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				}
 			}
 		}
-		// 获取到后直接设定 realIP
 		if realIP != "" {
 			if proxy.OverwriteXFF {
 				fmt.Println("🐸 Modify XFF to:", realIP)
+				req.Header.Unset(xForwardedFor)
 				req.Header.Set(xForwardedFor, realIP)
 			}
 			req.Header.Set(xRealIP, realIP)
@@ -89,7 +85,6 @@ func (g *GetRealIP) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	g.next.ServeHTTP(rw, req)
 }
 
-// 排除非IP
 func (g *GetRealIP) excludedIP(s string) bool {
 	ip := net.ParseIP(s)
 	return ip == nil

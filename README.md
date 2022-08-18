@@ -1,3 +1,5 @@
+# This is forked project in attempt to unset X-Forwarded-For prior to setting it to real IP
+
 # Traefik Get Real IP address
 
 <!-- cspell:words traefik middlewares proxyHeadername proxyHeadervalue Kubernetes -->
