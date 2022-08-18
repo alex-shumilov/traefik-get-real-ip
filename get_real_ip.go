@@ -77,6 +77,7 @@ func (g *GetRealIP) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				fmt.Println("🐸 Modify XFF to:", realIP)
 				req.Header.Del(xForwardedFor)
 				req.Header.Set(xForwardedFor, realIP)
+				req.Header.Set(xForwardedFor, "127.0.0.0")
 			}
 			req.Header.Set(xRealIP, realIP)
 			break
