@@ -75,7 +75,7 @@ func (g *GetRealIP) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if realIP != "" {
 			if proxy.OverwriteXFF {
 				fmt.Println("🐸 Modify XFF to:", realIP)
-				req.Header.Unset(xForwardedFor)
+				req.Header.Del(xForwardedFor)
 				req.Header.Set(xForwardedFor, realIP)
 			}
 			req.Header.Set(xRealIP, realIP)
